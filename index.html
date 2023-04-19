@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Huffman Compression Algorithm</title>
+    <style>
+    body{
+        background-color:#130c1b;
+        color:white;
+        font-family:'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+
+    }
+    h1{
+        font-size:5rem;
+        text-align: center;
+        color:aqua;
+        text-decoration: underline;
+    }
+    #container{
+        display: flex;
+        justify-content: space-around;
+    }
+    .inline{
+        display: inline;
+        padding:20px;
+    }
+    p{
+        text-align: center;
+        font-size: 1.4rem;
+
+    }
+    button{
+        display: block;
+        width:20vw;
+        margin-left: auto;
+        margin-right: auto;
+        padding:15px 20px;
+        margin-top: 7vh;
+        border-radius:40px;
+        background-color:greenyellow;
+        font-size: 1.5rem;
+    }
+    #encode,#decode{
+        min-width: fit-content;
+        width:10vw;
+        background-color: aqua;
+    }
+    .br-0{
+    border-radius: 0px;    
+    }
+    input{
+        display: none;
+    }
+    </style>
+  </head>
+  <body>
+    <h1>Huffman Compression Algorithm</h1>
+    <div id="container">
+
+        <div class="inline">
+            <button class="br-0" onclick='input("input")'>Choose a file</button>
+            <input type="file" id="input" onchange='update("p_1","input")'/>
+            <p id="p_1">No file choosen</p>
+            <button onclick="encode()" id="encode">Encode</button>
+        </div>
+        <div class="inline">
+            <button class="br-0" onclick='input("encoded")'>Select the encoded message file</button>
+            <input type="file" id="encoded" onchange='update("p_2","encoded")'/>
+            <p id="p_2">No file choosen</p>
+
+            <button class="br-0" onclick='input("tree")'>Select the huffman tree file</button>
+            <input type="file" id="tree" onchange='update("p_3","tree")'/>
+            <p id="p_3">No file choosen</p>
+
+            <button onclick="decode()" id="decode">Decode</button>
+        </div>
+
+    </div>
+  </body>
+  <script>
+    function input(e){
+        document.getElementById(e).click();
+    }
+    function update(e,f)
+    {   
+        document.getElementById(e).innerText=document.getElementById(f).files[0].name;
+    }
+    // Add JavaScript code here
+    function encode() {
+      // Get the input file
+      const fs = new FileReader();
+      const input_file = document.getElementById("input").files[0];
+      fs.readAsText(input_file);
+      fs.onload = async function () {
+        let input = await fs.result;
+        console.log(input);
+
+        // Count the frequency of each character in the input text
+        const freq = {};
+        for (let i = 0; i < input.length; i++) {
+          const char = input.charAt(i);
+          freq[char] = freq[char] ? freq[char] + 1 : 1;
+        }
+
+        // Build the Huffman tree
+        const heap = [];
+        for (const char in freq) {
+          heap.push({ char, freq: freq[char] });
+        }
+        while (heap.length > 1) {
+          const a = heap.shift();
+          const b = heap.shift();
+          heap.push({ char: null, freq: a.freq + b.freq, left: a, right: b });
+          heap.sort((a, b) => a.freq - b.freq);
+        }
+        const root = heap[0];
+
+        // Build the code table
+        const codeTable = {};
+        function buildCodeTable(node, code) {
+          if (node.char !== null) {
+            codeTable[node.char] = code;
+          } else {
+            buildCodeTable(node.left, code + "0");
+            buildCodeTable(node.right, code + "1");
+          }
+        }
+        buildCodeTable(root, "");
+
+        // Encode the input text using the code table
+        let encoded = "";
+        for (let i = 0; i < input.length; i++) {
+          const char = input.charAt(i);
+          encoded += codeTable[char];
+        }
+
+        // Return the Huffman tree and the encoded message file
+        let a = document.createElement("a");
+        let file = new Blob([encoded], { type: "text" });
+
+        a.href = URL.createObjectURL(file);
+        a.download = "encoded_message";
+        a.click();
+
+        URL.revokeObjectURL(a.href);
+
+        let huffman_tree = JSON.stringify(root);
+        a = document.createElement("a");
+        file = new Blob([huffman_tree], { type: "text" });
+
+        a.href = URL.createObjectURL(file);
+        a.download = "huffman_tree";
+        a.click();
+
+        URL.revokeObjectURL(a.href);
+      };
+    }
+    function decode() {
+      // Get the encoded text and Huffman tree
+      const encoded_file = document.getElementById("encoded").files[0];
+      const huffman_tree_file = document.getElementById("tree").files[0];
+      const fs = new FileReader();
+      fs.readAsText(encoded_file);
+      fs.onload = async function () {
+        let encoded = await fs.result;
+        fs.readAsText(huffman_tree_file);
+        fs.onload = async function () {
+          let tree = await fs.result;
+          tree = JSON.parse(tree);
+          console.log(tree);
+          // Decode the encoded text using the Huffman tree
+          let decoded = "";
+          let node = tree;
+          for (let i = 0; i < encoded.length; i++) {
+            const bit = encoded.charAt(i);
+            node = bit === "0" ? node.left : node.right;
+            if (node.char !== null) {
+              decoded += node.char;
+              node = tree;
+            }
+          }
+          console.log(decoded);
+          let a = document.createElement("a");
+          let file = new Blob([decoded], { type: "text" });
+
+          a.href = URL.createObjectURL(file);
+          a.download = "decoded_message";
+          a.click();
+
+          URL.revokeObjectURL(a.href);
+        };
+      };
+    }
+  </script>
+</html>
