@@ -18,10 +18,7 @@
     #container{
         display: flex;
         justify-content: space-around;
-    }
-    .inline{
-        display: inline;
-        padding:20px;
+        flex-direction: column;
     }
     p{
         text-align: center;
@@ -30,7 +27,7 @@
     }
     button{
         display: block;
-        width:20vw;
+        width:25vw;
         margin-left: auto;
         margin-right: auto;
         padding:15px 20px;
@@ -41,7 +38,7 @@
     }
     #encode,#decode{
         min-width: fit-content;
-        width:10vw;
+        width:20vw;
         background-color: aqua;
     }
     .br-0{
@@ -56,13 +53,15 @@
     <h1>Huffman Compression Algorithm</h1>
     <div id="container">
 
-        <div class="inline">
+        <div>
+          <h1 style="font-size:4rem;">Encoding Section</h1>
             <button class="br-0" onclick='input("input")'>Choose a file</button>
             <input type="file" id="input" onchange='update("p_1","input")'/>
             <p id="p_1">No file choosen</p>
             <button onclick="encode()" id="encode">Encode</button>
         </div>
-        <div class="inline">
+        <div>
+            <h1 style="font-size:4rem;">Decoding Section</h1>
             <button class="br-0" onclick='input("encoded")'>Select the encoded message file</button>
             <input type="file" id="encoded" onchange='update("p_2","encoded")'/>
             <p id="p_2">No file choosen</p>
